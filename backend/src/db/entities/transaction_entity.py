@@ -1,10 +1,10 @@
-from src.db_utils.base_entity import Base
+from src.db.db_utils.base_entity import Base
 import uuid
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy import ForeignKey, Numeric, DateTime, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.entities.account_entity import Account
+from src.db.entities.account_entity import Account
 
 class Transaction(Base):
     __tablename__ = "transactions"
