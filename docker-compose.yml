@@ -11,6 +11,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
-
+  redis:
+      image: redis:7-alpine
+      container_name: redis_fsm
+      ports:
+        - "6379:6379"
+  app:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
 volumes:
   postgres_data:

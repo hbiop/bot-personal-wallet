@@ -42,19 +42,19 @@ class TransactionService:
         return transaction
 
 
-async def add_income(
-        self, account_id: uuid.UUID, category_id: int, amount: Decimal, description: str | None
-) -> Transaction:
-    account = await self.tx_repo.get_account(account_id)
-    if not account:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Указанный счет не найден."
-        )
-    transaction = await self.tx_repo.create(account_id, category_id, amount, description)
+    async def add_income(
+            self, account_id: uuid.UUID, category_id: int, amount: Decimal, description: str | None
+    ) -> Transaction:
+        account = await self.tx_repo.get_account(account_id)
+        if not account:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Указанный счет не найден."
+            )
+        transaction = await self.tx_repo.create(account_id, category_id, amount, description)
 
-    await self.tx_repo.update_account_balance(account_id, amount)
+        await self.tx_repo.update_account_balance(account_id, amount)
 
-    await self.db.commit()
-    await self.db.refresh(transaction)
-    return transaction
+        await self.db.commit()
+        await self.db.refresh(transaction)
+        return transaction

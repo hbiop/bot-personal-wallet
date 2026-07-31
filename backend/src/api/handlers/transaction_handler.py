@@ -28,3 +28,24 @@ async def create_expense(
     )
 
     return new_expense
+
+@router.post(
+    "/income",
+    response_model=TransactionResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Добавить новый доход"
+)
+async def create_income(
+        payload: TransactionCreate,
+        db: AsyncSession = Depends(get_db)
+):
+    tx_service = TransactionService(db)
+
+    new_expense = await tx_service.add_income(
+        account_id=payload.account_id,
+        category_id=payload.category_id,
+        amount=payload.amount,
+        description=payload.description
+    )
+
+    return new_expense

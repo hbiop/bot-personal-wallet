@@ -19,6 +19,8 @@ class UserRepository:
         new_user = User(id=user_id, username=username, currency=currency)
         self.db.add(new_user)
 
+        await self.db.flush()
+
         default_account = Account(
             user_id=new_user.id,
             name="💵 Наличные",
