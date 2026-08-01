@@ -141,13 +141,13 @@ async def process_amount_entry(
 
 
 @router.message(TransactionStates.entering_description, F.text)
-async def process_description_entry(message: types.Message, state: FSMContext):
-    await save_transaction_and_finish(state, message, message.from_user.id, description=message.text.strip())
+async def process_description_entry(message: types.Message, state: FSMContext, tx_service: TransactionService):
+    await save_transaction_and_finish(state, message, tx_service, description=message.text.strip())
 
 @router.callback_query(TransactionStates.entering_description, F.data == "fsm_skip_desc")
-async def process_skip_description(callback: types.CallbackQuery, state: FSMContext):
+async def process_skip_description(callback: types.CallbackQuery, state: FSMContext, tx_service: TransactionService):
     await callback.answer()
-    await save_transaction_and_finish(state, callback.message, callback.from_user.id, description="Внесено через FSM бота 🤖")
+    await save_transaction_and_finish(state, callback.message, tx_service, description="Внесено через FSM бота 🤖")
 
 
 async def save_transaction_and_finish(state: FSMContext, message: types.Message, tx_service: TransactionService,

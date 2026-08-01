@@ -48,33 +48,56 @@ async def change_stats_type_callback(
 
 
 async def _send_or_edit_stats(
-        message: types.Message,
-        tx_service: TransactionService,
-        user_id: int,
-        tx_type: str,
-        is_callback: bool = False
+    message: types.Message,
+    tx_service: TransactionService,
+    user_id: int,
+    tx_type: str,
+    is_callback: bool = False,
 ):
     stats_data = await tx_service.get_monthly_statistics(user_id=user_id, tx_type=tx_type)
     title_type = "расходов" if tx_type == "expense" else "доходов"
-
     caption = f"📊 **Статистика {title_type} за 30 дней:**\n\n"
+
+    photo_file: types.InputFile | types.URLInputFile
+
     if not stats_data:
         caption += "_Нет данных для построения графика_"
+        photo_file = types.URLInputFile("https://via.placeholder.com/300?text=No+data")
     else:
         for category, amount in stats_data:
             caption += f"🔹 {category}: **{amount:,.2f} ₽**\n"
+        chart_buffer = generate_pie_chart(stats_data, title=f"Статистика {title_type}")
 
-    chart_buffer = generate_pie_chart(stats_data, title=f"Статистика {title_type}")
+        # Гарантированно перематываем буфер в начало
+        if chart_buffer:
+            chart_buffer.seek(0)
+            data = chart_buffer.read()
+        else:
+            data = b""
 
-    if chart_buffer:
-        photo_file = BufferedInputFile(chart_buffer.read(), filename="stats.png")
-    else:
-        photo_file = types.URLInputFile("https://placeholder.co")
+        if data and len(data) > 0:
+            photo_file = BufferedInputFile(data, filename="stats.png")
+        else:
+            # Если график не получился — заглушка вместо пустого файла
+            caption += "\n⚠️ Не удалось построить график."
+            photo_file = types.URLInputFile("https://via.placeholder.com/300?text=Chart+error")
 
     reply_markup = get_stats_keyboard(current_type=tx_type)
 
     if not is_callback:
-        await message.answer_photo(photo=photo_file, caption=caption, reply_markup=reply_markup, parse_mode="Markdown")
+        await message.answer_photo(
+            photo=photo_file,
+            caption=caption,
+            reply_markup=reply_markup,
+            parse_mode="Markdown",
+        )
     else:
-        media = InputMediaPhoto(media=photo_file, caption=caption, parse_mode="Markdown")
-        await message.edit_media(media=media, reply_markup=reply_markup)
+        media = InputMediaPhoto(
+            media=photo_file,
+            caption=caption,
+            parse_mode="Markdown",
+        )
+        await message.edit_media(
+            media=media,
+            reply_markup=reply_markup,
+        )

@@ -1,9 +1,9 @@
 import io
 import matplotlib
-import matplotlib.pyplot as plt
 
 matplotlib.use('Agg')
 
+import matplotlib.pyplot as plt
 
 def generate_pie_chart(data: list[tuple[str, float]], title: str) -> io.BytesIO | None:
     if not data:
@@ -32,7 +32,7 @@ def generate_pie_chart(data: list[tuple[str, float]], title: str) -> io.BytesIO 
     ax.set_title(title, fontsize=14, pad=20, weight='bold')
 
     image_buffer = io.BytesIO()
-    plt.savefig(image_buffer, format='png', bbox_inches='tight', dpi=150)
+    fig.savefig(image_buffer, format='png', bbox_inches='tight', dpi=150)
     image_buffer.seek(0)
 
     plt.close(fig)
