@@ -31,3 +31,5 @@ class TransactionRepository:
         query = select(Account).where(Account.id == account_id)
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
+
+

@@ -15,6 +15,11 @@ class UserRepository:
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
 
+    async def get_all_accounts(self, user_id: int) -> list[Account]:
+        query = select(Account).where(Account.user_id == user_id)
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+
     async def register_new_user(self, user_id: int, username: str | None, currency: str) -> User:
         new_user = User(id=user_id, username=username, currency=currency)
         self.db.add(new_user)
