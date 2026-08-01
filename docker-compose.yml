@@ -43,5 +43,15 @@ services:
       redis:
         condition: service_healthy 
 
+  adminer:
+    image: adminer
+    container_name: adminer_bot
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:

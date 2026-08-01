@@ -6,7 +6,7 @@ class Config(BaseSettings):
     DB_USER: SecretStr
     DB_PASSWORD: SecretStr
     HOST: str
-    PORT: int
+    DB_PORT: int
     DB_NAME: str
     WEBHOOK_URL: str
 
@@ -14,7 +14,7 @@ class Config(BaseSettings):
 
     @property
     def database_url(self) -> str:
-        return f'postgresql+asyncpg://{self.DB_USER.get_secret_value()}:{self.DB_PASSWORD.get_secret_value()}@{self.HOST}:{self.PORT}/{self.DB_NAME}'
+        return f'postgresql+asyncpg://{self.DB_USER.get_secret_value()}:{self.DB_PASSWORD.get_secret_value()}@{self.HOST}:{self.DB_PORT}/{self.DB_NAME}'
 
 
 config = Config()

@@ -12,6 +12,8 @@ from src.db.entities.account_entity import Account
 from src.db.entities.category_entity import Category
 from src.services.transaction_service import TransactionService
 
+from aiogram import html  
+
 router = Router(name="expense_fsm_router")
 
 
@@ -96,7 +98,7 @@ async def process_amount_entry(message: types.Message, state: FSMContext):
         await message.answer("❌ Неверный формат числа. Введите сумму цифрами:")
         return
 
-    await state.update_data(amount=amount)
+    await state.update_data(amount=str(amount))
 
     builder = InlineKeyboardBuilder()
     builder.button(text="⏩ Пропустить комментарий", callback_data="fsm_skip_desc")
@@ -108,33 +110,36 @@ async def process_amount_entry(message: types.Message, state: FSMContext):
 
 @router.message(ExpenseStates.entering_description, F.text)
 async def process_description_entry(message: types.Message, state: FSMContext):
-    # Если пользователь написал текст — берем его
-    await save_transaction_and_finish(state, message, description=message.text.strip())
-
+    await save_transaction_and_finish(state, message, message.from_user.id, description=message.text.strip())
 
 @router.callback_query(ExpenseStates.entering_description, F.data == "fsm_skip_desc")
 async def process_skip_description(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
-    await save_transaction_and_finish(state, callback.message, description="Внесено через FSM бота 🤖")
+    await save_transaction_and_finish(state, callback.message, callback.from_user.id, description="Внесено через FSM бота 🤖")
 
 
-async def save_transaction_and_finish(state: FSMContext, message: types.Message, description: str | None):
+
+async def save_transaction_and_finish(state: FSMContext, message: types.Message, user_id: int, description: str | None):
     data = await state.get_data()
-
+    saved_amount = Decimal(data['amount'])
+    
     async with async_session_maker() as db:
         tx_service = TransactionService(db)
-
+        
         await tx_service.add_expense(
             account_id=uuid.UUID(data["account_id"]),
             category_id=data["category_id"],
-            amount=data["amount"],
-            description=description
+            amount=saved_amount,
+            description=description,
         )
 
     await state.clear()
 
+    safe_description = html.quote(description) if description else "Без описания"
+
     await message.answer(
-        "✅ **Расход успешно зафиксирован!**\n\n"
-        f"💰 Сумма: **{data['amount']} ₽**\n"
-        f"📝 Заметка: _{description}_"
+        "✅ <b>Расход успешно зафиксирован!</b>\n\n"
+        f"💰 Сумма: <b>{data['amount']} ₽</b>\n"
+        f"📝 Заметка: <i>{safe_description}</i>",
+        parse_mode="HTML"
     )
