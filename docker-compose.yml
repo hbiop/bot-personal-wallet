@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: postgres_db
+    container_name: postgres_bot
     environment:
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test
@@ -35,16 +35,7 @@ services:
       dockerfile: backend/Dockerfile 
     container_name: fastapi_bot
     ports:
-      - "8000:8000"               
-    environment:
-      - BOT_TOKEN=ВАШ_ТОКЕН_БОТА
-      - WEBHOOK_URL=https://your-domain.com
-      - REDIS_HOST=redis          
-      - REDIS_PORT=6379
-      - DB_HOST=postgres         
-      - DB_USER=test
-      - DB_PASSWORD=test
-      - DB_NAME=test
+      - "8000:8000"
     restart: unless-stopped
     depends_on:
       postgres:
